@@ -38,19 +38,30 @@ function M.tlog()
     log.debug('debug lvl '..message)
 end
 
-function M.tfiber()
+function M.tfiber(channel)
     local function fiber_function(f_object)
-        while true do
+        local function work_with_fiber_storage()
             if f_object.f then
                 if f_object.f.storage.x == nil then
                     f_object.f.storage.x = 0
                 end
-                log.info('fiber woke up, fiber_object:self() = '..f_object.f.storage.x)
+                log.info('fiber_object:self() = '..f_object.f.storage.x)
                 f_object.f.storage.x = f_object.f.storage.x + 1
             else
                 log.info('fiber_object is nil!')
             end
-            fiber.sleep(5)
+        end
+
+        local running = true
+        while running do
+            local task = channel:get()
+            if task ~= nil then
+                log.info('fiber woke up, receive '..task)
+                work_with_fiber_storage()
+            else
+                log.info('channel is close, so stop fiber')
+                running = false
+            end
         end
     end
     local fiber_object = {f = nil}
