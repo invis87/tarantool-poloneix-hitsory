@@ -9,7 +9,7 @@ box.once('access:v1', function()
 end)
 
 local app = {
-    mod1 = require 'mod1',
+    main = require 'main',
     spacer = require 'spacer'({
         migrations = 'migrations',
     }),

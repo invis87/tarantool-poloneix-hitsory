@@ -4,10 +4,12 @@ local M = {}
 local app
 local http_client
 local json
+local fiber
 
 function M.init(config)
     app = require 'app'
     json = require 'json'
+    fiber = require 'fiber'
     M.config = config
     http_client = require('http.client').new({5})
 end
@@ -34,6 +36,27 @@ function M.tlog()
     log.info('info lvl '..message)
     log.verbose('verbose lvl '..message)
     log.debug('debug lvl '..message)
+end
+
+function M.tfiber()
+    local function fiber_function(f_object)
+        while true do
+            if f_object.f then
+                if f_object.f.storage.x == nil then
+                    f_object.f.storage.x = 0
+                end
+                log.info('fiber woke up, fiber_object:self() = '..f_object.f.storage.x)
+                f_object.f.storage.x = f_object.f.storage.x + 1
+            else
+                log.info('fiber_object is nil!')
+            end
+            fiber.sleep(5)
+        end
+    end
+    local fiber_object = {f = nil}
+    fiber_object.f = fiber.create(fiber_function, fiber_object)
+    fiber_object.f:name('test_fiber')
+    return fiber_object
 end
 
 function M.destroy()
