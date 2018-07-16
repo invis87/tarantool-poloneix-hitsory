@@ -9,14 +9,13 @@
 local spacer = require 'spacer'
 
 spacer:space({
-    name = 'object',
+    name = 'usdt_btc_orders',
     format = {
-        { name = 'id', type = 'unsigned' },
-        { name = 'name', type = 'string', is_nullable = true },
+        { name = 'id', type = 'unsigned', is_nullable = false },
+        { name = 'sells', type = 'number', is_nullable = false },
+        { name = 'buys', type = 'number', is_nullable = false }
     },
     indexes = {
-        { name = 'primary', type = 'tree', unique = true, parts = {'id'}, sequence = true },
-        { name = 'name', type = 'tree', unique = false, parts = {'name', 'id'} },
+        { name = 'primary', type = 'tree', unique = true, parts = {'id'}, sequence = false }
     }
 })
-

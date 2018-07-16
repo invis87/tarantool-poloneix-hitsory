@@ -9,7 +9,7 @@ clean:
 	rm -rf .tnt*
 
 run:
-	FG=1 CONF=./conf.lua tarantoolctl start poloneix-hitsory.lua
+	FG=1 CONF=./conf.lua tarantoolctl start $(startfile)
 
 dep:
 	tarantoolapp dep --meta-file ./meta.yaml --tree ./.rocks

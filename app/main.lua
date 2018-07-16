@@ -1,4 +1,5 @@
 local log = require 'log'
+require('libraries.functions')
 
 local M = {}
 local app
@@ -14,11 +15,20 @@ function M.init(config)
     http_client = require('http.client').new({5})
 end
 
-function M.http(depth)
-    local url = 'https://poloniex.com/public?command=returnOrderBook&currencyPair=BTC_NXT&depth='..depth
+local function get_average_price(bids)
+    local multiple_function = function(t) return t[1]*t[2] end
+    local amount_on_price = map(multiple_function, bids)
+    return reduce(operator.add, amount_on_price)
+end
+
+function M.bts_to_usdt_avg_price(depth)
+    local url = 'https://poloniex.com/public?command=returnOrderBook&currencyPair=USDT_BTC&depth='..depth
     local response = http_client:request('GET', url)
     if response.body then
-        return json.decode(response.body)
+        local orders = json.decode(response.body)
+        local sells = get_average_price(orders.asks)
+        local buys = get_average_price(orders.bids)
+        return sells, buys
     end
 end
 

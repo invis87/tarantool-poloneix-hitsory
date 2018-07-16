@@ -3,6 +3,10 @@ local log = require 'log'
 
 box.once('access:v1', function()
     box.schema.user.grant('guest', 'read,write,execute', 'universe')
+
+    box.schema.user.create('replicator', {password = 'password'})
+    box.schema.user.grant('replicator', 'replication') -- grant replication role
+
     -- Uncomment this to create user poloneix-hitsory_user
     -- box.schema.user.create('poloneix-hitsory_user', { password = 'poloneix-hitsory_pass' })
     -- box.schema.user.grant('poloneix-hitsory_user', 'read,write,execute', 'universe')
@@ -10,6 +14,7 @@ end)
 
 local app = {
     main = require 'main',
+    filler = require 'fill_prices',
     spacer = require 'spacer'({
         migrations = 'migrations',
     }),
