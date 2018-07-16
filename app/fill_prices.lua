@@ -36,17 +36,27 @@ function M.bts_to_usdt_avg_price(depth)
         local orders = json.decode(response.body)
         local sells = get_average_price(orders.asks)
         local buys = get_average_price(orders.bids)
-        return sells, buys
+        local res = {sum = 0, avg_price = 0 }
+        local i = 1
+        while(res.sum < 20000) do
+            local ask = orders.asks[i]
+            res.sum = res.sum + ask[1] * ask[2]
+            res.avg_price = res.avg_price + ask[1]
+            i = i + 1
+        end
+        res.avg_price = res.avg_price / i
+
+        return sells, buys, res.avg_price
     else
         log.error('fail to get response from poloneix')
     end
 end
 
 local function fill_prices_table()
-    local sells, buys = M.bts_to_usdt_avg_price(100000)
+    local sells, buys, avg_price = M.bts_to_usdt_avg_price(100000)
     if sells and buys then
         local now = math.floor(clock.time()*1000)
-        box.space.usdt_btc_orders:insert({now, sells, buys})
+        box.space.usdt_btc_orders:insert({now, sells, buys, avg_price})
         log.debug('insert to prices; sells='..sells..'; buys='..buys)
     end
 end

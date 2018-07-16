@@ -13,7 +13,8 @@ spacer:space({
     format = {
         { name = 'id', type = 'unsigned', is_nullable = false },
         { name = 'sells', type = 'number', is_nullable = false },
-        { name = 'buys', type = 'number', is_nullable = false }
+        { name = 'buys', type = 'number', is_nullable = false },
+        { name = 'avg_price', type = 'number', is_nullable = false }
     },
     indexes = {
         { name = 'primary', type = 'tree', unique = true, parts = {'id'}, sequence = false }
