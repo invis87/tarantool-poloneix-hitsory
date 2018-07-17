@@ -29,6 +29,19 @@ local function get_average_price(bids)
     return reduce(operator.add, amount_on_price)
 end
 
+local function calc_avg_price(data)
+    local res = {btc_count = 0, avg_price = 0 }
+    local i = 0
+    local data_length = table.getn(data)
+    while(res.btc_count < 10 and i <= data_length) do
+        i = i + 1
+        local bid = data[i]
+        res.btc_count = res.btc_count + bid[2]
+        res.avg_price = res.avg_price + bid[1] * bid[2]
+    end
+    return res.avg_price / res.btc_count
+end
+
 function M.bts_to_usdt_avg_price(depth)
     local url = 'https://poloniex.com/public?command=returnOrderBook&currencyPair=USDT_BTC&depth='..depth
     local response = http_client:request('GET', url)
@@ -36,27 +49,19 @@ function M.bts_to_usdt_avg_price(depth)
         local orders = json.decode(response.body)
         local sells = get_average_price(orders.asks)
         local buys = get_average_price(orders.bids)
-        local res = {sum = 0, avg_price = 0 }
-        local i = 1
-        while(res.sum < 20000) do
-            local ask = orders.asks[i]
-            res.sum = res.sum + ask[1] * ask[2]
-            res.avg_price = res.avg_price + ask[1]
-            i = i + 1
-        end
-        res.avg_price = res.avg_price / i
-
-        return sells, buys, res.avg_price
+        local avg_sell_price = calc_avg_price(orders.asks)
+        local avg_buy_price = calc_avg_price(orders.bids)
+        return sells, buys, avg_sell_price, avg_buy_price
     else
         log.error('fail to get response from poloneix')
     end
 end
 
 local function fill_prices_table()
-    local sells, buys, avg_price = M.bts_to_usdt_avg_price(100000)
+    local sells, buys, avg_sell_price, avg_buy_price = M.bts_to_usdt_avg_price(100000)
     if sells and buys then
         local now = math.floor(clock.time()*1000)
-        box.space.usdt_btc_orders:insert({now, sells, buys, avg_price})
+        box.space.usdt_btc_orders:insert({now, sells, buys, avg_sell_price, avg_buy_price})
         log.debug('insert to prices; sells='..sells..'; buys='..buys)
     end
 end
