@@ -112,6 +112,31 @@ function M.get_http_client()
     return http_client
 end
 
+
+function M.get_metric(name, value, ts)
+    return name .. ' ' .. tostring(value) .. ' ' .. tostring(ts) .. '\n'
+end
+
+local socket = require('socket')
+local sock = socket.tcp_connect('127.0.0.1', 2003)
+function M.send_metric(name, value, ts)
+    return sock:write(M.get_metric(name, value, ts))
+end
+
+function M.send_btc_data()
+    for _, value in pairs(box.space.usdt_btc_orders:select{}) do
+        local seconds = math.floor(value[1] / 1000)
+        local sells = value[2]
+        local buys = value[3]
+        local avg_sell_price = value[4]
+        local avg_buy_price = value[5]
+        M.send_metric('btc.sells', sells, seconds)
+        M.send_metric('btc.buys', buys, seconds)
+        M.send_metric('btc.avg_sell_price', avg_sell_price, seconds)
+        M.send_metric('btc.avg_buy_price', avg_buy_price, seconds)
+    end
+end
+
 function M.destroy()
 end
 
