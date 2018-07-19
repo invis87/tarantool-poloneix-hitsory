@@ -20,7 +20,7 @@ function M.init(config)
     json = require 'json'
     fiber = require 'fiber'
     M.config = config
-    http_client = require('http.client').new({1})
+    http_client = require('http.client').new({5})
 end
 
 local function get_average_price(bids)
@@ -44,7 +44,8 @@ end
 
 function M.bts_to_usdt_avg_price(depth)
     local url = 'https://poloniex.com/public?command=returnOrderBook&currencyPair=USDT_BTC&depth='..depth
-    local response = http_client:request('GET', url)
+    local response = http_client:get(url, {timeout = 5})
+    log.info('filler http response status:'..response.status)
     if response.body then
         local orders = json.decode(response.body)
         local sells = get_average_price(orders.asks)
@@ -59,10 +60,10 @@ end
 
 local function fill_prices_table()
     local sells, buys, avg_sell_price, avg_buy_price = M.bts_to_usdt_avg_price(100000)
-    if sells and buys then
+    if sells and buys and avg_sell_price and avg_buy_price then
         local now = math.floor(clock.time()*1000)
         box.space.usdt_btc_orders:insert({now, sells, buys, avg_sell_price, avg_buy_price})
-        log.debug('insert to prices; sells='..sells..'; buys='..buys)
+        log.debug('insert to prices; sells='..sells..'; buys='..buys..'; avg_sell_price='..avg_sell_price..'; avg_buy_price='..avg_buy_price)
     end
 end
 
@@ -71,6 +72,7 @@ function M.fill_fiber(channel)
     while running do
         local task = channel:get()
         if task ~= nil then
+            log.debug('filler successfuly get message from channel')
             fill_prices_table()
         else
             log.error('fill_fiber is stopped!')
@@ -89,12 +91,25 @@ function M.start()
 
     local function awake_channel(channel)
         while true do
-            channel:put('')
+            local put_res = channel:put('', 5)
+            if put_res then
+                log.debug('awaker successfuly put message to channel')
+            else
+                log.debug('awaker fail to put message to channel')
+            end
             fiber.sleep(1)
         end
     end
     awaker_fiber = fiber.create(awake_channel, fiber_channel)
     awaker_fiber:name('awaker_fiber')
+end
+
+function M.get_channel()
+    return fiber_channel
+end
+
+function M.get_http_client()
+    return http_client
 end
 
 function M.destroy()
