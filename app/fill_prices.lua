@@ -55,7 +55,7 @@ function M.bts_to_usdt_avg_price(depth)
             local avg_buy_price = calc_avg_price(orders.bids)
             return sells, buys, avg_sell_price, avg_buy_price
         else
-            log.error('fail to decode json: '..tostring(response.body))
+            log.error('fail to decode json, reason: '..tostring(orders)..'; json body:\n'..tostring(response.body))
         end
     else
         log.error('fail to get response from poloneix')
