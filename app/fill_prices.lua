@@ -47,7 +47,7 @@ function M.bts_to_usdt_avg_price(depth)
     local response = http_client:get(url, {timeout = 2})
     log.info('filler http response status:'..response.status)
     if response.body then
-        local is_valid_json, orders = pcall(json.decode(response.body))
+        local is_valid_json, orders = pcall(json.decode, response.body)
         if is_valid_json then
             local sells = get_average_price(orders.asks)
             local buys = get_average_price(orders.bids)
