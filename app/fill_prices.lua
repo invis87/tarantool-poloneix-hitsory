@@ -44,9 +44,9 @@ end
 
 function M.bts_to_usdt_avg_price(depth)
     local url = 'https://poloniex.com/public?command=returnOrderBook&currencyPair=USDT_BTC&depth='..depth
-    local response = http_client:get(url, {timeout = 2})
+    local is_valid_response, response = pcall(http_client.get, http_client, url, {timeout = 2})
     log.info('filler http response status:'..response.status)
-    if response.body then
+    if is_valid_response and response.body then
         local is_valid_json, orders = pcall(json.decode, response.body)
         if is_valid_json then
             local sells = get_average_price(orders.asks)
@@ -55,10 +55,14 @@ function M.bts_to_usdt_avg_price(depth)
             local avg_buy_price = calc_avg_price(orders.bids)
             return sells, buys, avg_sell_price, avg_buy_price
         else
-            log.error('fail to decode json, reason: '..tostring(orders)..'; json body:\n'..tostring(response.body))
+            log.error('fail to decode json, reason: '..tostring(orders))
         end
     else
-        log.error('fail to get response from poloneix')
+        local msg = 'fail to get response from poloneix, is_valid: '..tostring(is_valid_response)
+        if not is_valid_response then
+            msg = msg..', reason: '..response
+        end
+        log.error(msg)
     end
 end
 
