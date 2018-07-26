@@ -45,8 +45,8 @@ end
 function M.bts_to_usdt_avg_price(depth)
     local url = 'https://poloniex.com/public?command=returnOrderBook&currencyPair=USDT_BTC&depth='..depth
     local is_valid_response, response = pcall(http_client.get, http_client, url, {timeout = 2})
-    log.info('filler http response status:'..response.status)
     if is_valid_response and response.body then
+        log.debug('filler http response status:'..response.status)
         local is_valid_json, orders = pcall(json.decode, response.body)
         if is_valid_json then
             local sells = get_average_price(orders.asks)
