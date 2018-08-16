@@ -81,7 +81,10 @@ function M.fill_fiber(channel)
         local task = channel:get()
         if task ~= nil then
             log.debug('filler successfuly get message from channel')
-            fill_prices_table()
+            local is_ok, error = pcall(fill_prices_table)
+            if not is_ok and error then
+                log.error('\'fill_prices_table\' return error: '..error)
+            end
         else
             log.error('fill_fiber is stopped!')
             running = false
