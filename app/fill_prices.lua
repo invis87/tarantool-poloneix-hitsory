@@ -60,7 +60,7 @@ function M.bts_to_usdt_avg_price(depth)
     else
         local msg = 'fail to get response from poloneix, is_valid: '..tostring(is_valid_response)
         if not is_valid_response then
-            msg = msg..', reason: '..response
+            msg = msg..', reason: '..tostring(response)
         end
         log.error(msg)
     end
